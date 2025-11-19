@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ENTREGA N3-DEVOPS</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <header class="navbar">
+        <h1 class="logo">Saint-CatherineFlix</h1>
+
+        <input 
+            type="text" 
+            id="searchInput" 
+            placeholder="Buscar filmes..."
+            onkeydown="if(event.key === 'Enter') buscarFilme()"
+        />
+    </header>
+
+    <!-- HERO PRINCIPAL -->
+    <section class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h2>Bem-vindo ao Saint-CatherineFlix</h2>
+            <p>Seu catálogo inteligente feito pelo Grupo: Luiz Felipe C.Gomes, Pedro Nicoletti e Camila Pereira</p>
+        </div>
+    </section>
+
+    <!-- RESULTADO DA BUSCA -->
+    <section id="resultadoBusca" class="resultado"></section>
+
+    <!-- LISTAS CARROSSEL -->
+    <h2 class="categoria-titulo">🔥 Populares</h2>
+    <section id="carrosselPopulares" class="carrossel"></section>
+
+    <h2 class="categoria-titulo">⭐ Mais bem avaliados</h2>
+    <section id="carrosselAvaliados" class="carrossel"></section>
+
+    <h2 class="categoria-titulo">🎬 Lançamentos</h2>
+    <section id="carrosselLancamentos" class="carrossel"></section>
+
+    <!-- MODAL DO TRAILER -->
+    <div id="trailerModal" class="modal" onclick="fecharModal(event)">
+        <div class="modal-content">
+            <span class="close" onclick="fecharModal()">×</span>
+            <iframe id="trailerFrame" src="" frameborder="0" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <script>
+        const API_LOCAL = "http://localhost:3000/api/filmes/";
+
+        // -------------------------------
+        // 🔍 BUSCA DINÂMICA
+        // -------------------------------
+        async function buscarFilme() {
+            const titulo = document.getElementById("searchInput").value.trim();
+            if (!titulo) return;
+
+            const res = await fetch(API_LOCAL + encodeURIComponent(titulo));
+            const data = await res.json();
+
+            document.getElementById("resultadoBusca").innerHTML = `
+                <div class="card-detalhe">
+                    <h2>${data.titulo}</h2>
+                    <p><strong>Lançamento:</strong> ${data.lancamento}</p>
+                    <p>${data.sinopse}</p>
+
+                    <div class="notas">
+                        <span>IMDb: ${data.notasOMDb?.imdb || "N/A"}</span>
+                        <span>Rotten Tomatoes: ${data.notasOMDb?.rottenTomatoes || "N/A"}</span>
+                        <span>Metacritic: ${data.notasOMDb?.metacritic || "N/A"}</span>
+                    </div>
+
+                    ${data.trailer ? 
+                        `<button class="trailer-btn" onclick="abrirTrailer('${data.trailer}')">Assistir Trailer</button>`
+                        : `<p>Trailer não disponível.</p>`
+                    }
+                </div>
+            `;
+        }
+
+        // -------------------------------
+        // 🎥 MODAL DO TRAILER
+        // -------------------------------
+        function abrirTrailer(url) {
+            document.getElementById("trailerModal").style.display = "flex";
+            document.getElementById("trailerFrame").src = url.replace("watch?v=", "embed/");
+        }
+
+        function fecharModal(event) {
+            if (event && event.target !== document.getElementById("trailerModal")) return;
+            document.getElementById("trailerModal").style.display = "none";
+            document.getElementById("trailerFrame").src = "";
+        }
+
+        // -------------------------------
+        // 📌 TMDB CARROSSEIS (FRONT APENAS)
+        // -------------------------------
+        async function carregarCarrossel(endpoint, containerId) {
+            const url = `https://api.themoviedb.org/3${endpoint}?api_key=2cc5de7d5097e69d76342a0dfbff39ab&language=pt-BR`;
+
+            const res = await fetch(url);
+            const data = await res.json();
+
+            const container = document.getElementById(containerId);
+            container.innerHTML = data.results
+                .map(
+                    (f) => `
+                <div class="card" onclick="buscarCard('${f.title}')">
+                    <img src="https://image.tmdb.org/t/p/w500${f.poster_path}" alt="">
+                    <span>${f.title}</span>
+                </div>
+            `
+                )
+                .join("");
+        }
+
+        async function buscarCard(titulo) {
+            document.getElementById("searchInput").value = titulo;
+            buscarFilme();
+            window.scrollTo(0, 0);
+        }
+
+        // Carregar carrosséis iniciais
+        carregarCarrossel("/movie/popular", "carrosselPopulares");
+        carregarCarrossel("/movie/top_rated", "carrosselAvaliados");
+        carregarCarrossel("/movie/upcoming", "carrosselLancamentos");
+    </script>
+</body>
+</html>
