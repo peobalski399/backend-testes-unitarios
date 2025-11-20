@@ -14,21 +14,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout do código
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: npm
 
       - name: Install dependencies
         run: npm install
 
-      - name: Run ESLint
-        if: ${{ exists('eslint.config.js') || exists('.eslintrc.js') || exists('.eslintrc.json') }}
-        run: npm run lint
+      - name: Run ESLint (se existir)
+        run: |
+          if [ -f "eslint.config.js" ] || [ -f ".eslintrc.js" ] || [ -f ".eslintrc.json" ]; then
+            echo "ESLint encontrado. Rodando lint..."
+            npm run lint
+          else
+            echo "Nenhuma configuração do ESLint encontrada. Pulando etapa."
+          fi
 
       - name: Run tests with coverage
         run: npm test -- --coverage
