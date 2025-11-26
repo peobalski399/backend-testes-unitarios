@@ -11,7 +11,16 @@ describe("Cobertura total de erros e exceções", () => {
   it("Deve retornar informações completas de um filme", async () => {
     axios.get
       .mockResolvedValueOnce({
-        data: { results: [{ id: 1, title: "Inception", release_date: "2010", overview: "Um filme sobre sonhos" }] },
+        data: {
+          results: [
+            {
+              id: 1,
+              title: "Inception",
+              release_date: "2010",
+              overview: "Um filme sobre sonhos",
+            },
+          ],
+        },
       })
       .mockResolvedValueOnce({ data: { imdb_id: "tt1375666" } })
       .mockResolvedValueOnce({
@@ -30,7 +39,9 @@ describe("Cobertura total de erros e exceções", () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.body.titulo).toBe("Inception");
-    expect(res.body.trailer).toBe("https://www.youtube.com/watch?v=YoHD9XEInc0");
+    expect(res.body.trailer).toBe(
+      "https://www.youtube.com/watch?v=YoHD9XEInc0"
+    );
     expect(res.body.notasOMDb.imdb).toBe("8.8");
   });
 
@@ -57,7 +68,9 @@ describe("Cobertura total de erros e exceções", () => {
   //Erro no OMDb
   it("Deve capturar erro do OMDb", async () => {
     axios.get
-      .mockResolvedValueOnce({ data: { results: [{ id: 1, title: "Teste", release_date: "2010" }] } })
+      .mockResolvedValueOnce({
+        data: { results: [{ id: 1, title: "Teste", release_date: "2010" }] },
+      })
       .mockResolvedValueOnce({ data: { imdb_id: "tt1375666" } })
       .mockRejectedValueOnce(new Error("OMDb Error"));
 
@@ -70,7 +83,11 @@ describe("Cobertura total de erros e exceções", () => {
   //Erro no YouTube
   it("Deve capturar erro ao buscar trailer no YouTube", async () => {
     axios.get
-      .mockResolvedValueOnce({ data: { results: [{ id: 1, title: "Inception", release_date: "2010" }] } })
+      .mockResolvedValueOnce({
+        data: {
+          results: [{ id: 1, title: "Inception", release_date: "2010" }],
+        },
+      })
       .mockResolvedValueOnce({ data: { imdb_id: "tt1375666" } })
       .mockResolvedValueOnce({
         data: {
