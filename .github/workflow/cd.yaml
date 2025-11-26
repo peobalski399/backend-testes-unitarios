@@ -1,0 +1,33 @@
+name: CD - Deploy na AWS
+
+on:
+  push:
+    branches:
+      - develop        # Requisito da N3: Rodar na branch develop
+      - main           # (Opcional) Também roda na main se precisar
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Deploy no servidor EC2 via SSH
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USERNAME }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        port: 22
+        script: |
+          # 1. Entra na pasta correta (CONFIRMADA)
+          cd /opt/backend-testes-unitarios
+          
+          # 2. Baixa as atualizações do GitHub
+          # (Se der erro de permissão no git, usamos sudo)
+          sudo git pull origin develop
+          
+          # 3. Instala novas dependências (se houver)
+          sudo npm install
+          
+          # 4. Reinicia a aplicação no PM2 para aplicar as mudanças
+          pm2 restart "minha-api"
